@@ -1,0 +1,55 @@
+{
+  "name": "nestch",
+  "version": "1.1.2",
+  "private": false,
+  "description": "A CLI tool for renaming NestJS resource names easily.",
+  "main": "dist/index.js",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "build": "tsc",
+    "format": "prettier --write 'src/**/*.{ts,js,json}'",
+    "start": "node dist/index.js",
+    "cli": "pnpm run build && pnpm link",
+    "dev": "ts-node src/index.ts",
+    "all": "pnpm run format && pnpm run build && pnpm publish",
+    "test-local": "pnpm run build && pnpm link"
+  },
+  "dependencies": {
+    "commander": "^14.0.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.8.3",
+    "prettier": "^3.5.3"
+  },
+  "keywords": [
+    "nestjs",
+    "cli",
+    "name",
+    "resource",
+    "rename",
+    "change"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/isnoa/nestch.git"
+  },
+  "contributors": [
+    {
+      "name": "isnoa",
+      "email": "isnoa3166@gmail.com",
+      "url": "https://github.com/isnoa"
+    }
+  ],
+  "author": "isnoa",
+  "license": "MIT",
+  "bin": {
+    "nestch": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.11.0"
+}

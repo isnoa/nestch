@@ -1,0 +1,55 @@
+# 빌드 결과물
+/dist
+
+# 의존성
+/node_modules
+
+# 로그 파일
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS별 파일
+.DS_Store
+
+# 테스트 결과
+/coverage
+/.nyc_output
+
+# IDE 및 에디터
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# 환경 변수 파일
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# 임시 디렉토리
+.temp
+.tmp
+
+# 런타임 데이터
+pids
+
+# 기타
+*.swp
+*.swo
