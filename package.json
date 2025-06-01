@@ -9,10 +9,10 @@
     "build": "tsc",
     "format": "prettier --write 'src/**/*.{ts,js,json}'",
     "start": "node dist/index.js",
-    "cli": "pnpm run build && pnpm link",
+    "cli": "npm run build && npm link",
     "dev": "ts-node src/index.ts",
-    "all": "pnpm run format && pnpm run build && pnpm publish",
-    "test-local": "pnpm run build && pnpm link"
+    "all": "npm run format && npm run build && npm publish",
+    "test-local": "npm run build && npm link"
   },
   "dependencies": {
     "commander": "^14.0.0",
