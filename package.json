@@ -5,7 +5,7 @@
   "description": "A CLI tool for renaming NestJS resource names easily.",
   "main": "dist/index.js",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
+    "preinstall": "npx only-allow npm && npm run format",
     "build": "tsc",
     "format": "prettier --write 'src/**/*.{ts,js,json}'",
     "start": "node dist/index.js",
@@ -70,6 +70,5 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  },
-  "packageManager": "pnpm@10.11.0"
+  }
 }
