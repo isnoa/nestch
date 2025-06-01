@@ -22,7 +22,6 @@ export class RenameResCommand {
     this.oldName = oldName;
     this.newName = newName;
 
-    // Check if this is a NestJS project
     const packageJsonPath = path.join(process.cwd(), "package.json");
     if (!fs.existsSync(packageJsonPath)) {
       console.error("package.json not found.");
@@ -41,13 +40,11 @@ export class RenameResCommand {
       process.exit(1);
     }
 
-    // Check if src directory exists
     if (!fs.existsSync(this.srcPath)) {
       console.error("src directory not found.");
       process.exit(1);
     }
 
-    // Check if old name exists
     const oldNameLower = this.oldName.toLowerCase();
     const oldNameCapital = capitalizeFirstLetter(this.oldName);
     this.checkOldNameExists(this.srcPath, oldNameLower, oldNameCapital);
@@ -57,7 +54,6 @@ export class RenameResCommand {
       process.exit(1);
     }
 
-    // Confirm before renaming
     const confirm = await prompts({
       type: "confirm",
       name: "confirm",
@@ -70,10 +66,8 @@ export class RenameResCommand {
       return;
     }
 
-    // Execute renaming
     this.renameInProject(oldNameLower, oldNameCapital);
 
-    // 요약 출력
     if (this.renamedFiles.length > 0) {
       console.log(`\n[Renamed files/directories: ${this.renamedFiles.length}]`);
       this.renamedFiles.forEach((f) => console.log(`  - ${f}`));
@@ -90,25 +84,22 @@ export class RenameResCommand {
   }
 
   private checkOldNameExists(dir: string, oldNameLower: string, oldNameCapital: string): void {
-    if (this.found) return; // 이미 찾았으면 더 이상 탐색하지 않음
+    if (this.found) return;
 
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
-      if (this.found) break; // 이미 찾았으면 중단
+      if (this.found) break;
 
       const fullPath = path.join(dir, entry.name);
 
       if (entry.isDirectory()) {
         this.checkOldNameExists(fullPath, oldNameLower, oldNameCapital);
       } else if (entry.isFile() && entry.name.endsWith(".ts")) {
-        // Check filename
         if (entry.name.toLowerCase().includes(oldNameLower)) {
           this.found = true;
           break;
         }
-
-        // Check file content
         try {
           const content = fs.readFileSync(fullPath, "utf8");
           if (content.includes(oldNameLower) || content.includes(oldNameCapital)) {
@@ -126,10 +117,7 @@ export class RenameResCommand {
     const newNameLower = this.newName.toLowerCase();
     const newNameCapital = capitalizeFirstLetter(this.newName);
 
-    // Rename files and directories
     this.renameFilesAndDirs(this.srcPath, oldNameLower, newNameLower);
-
-    // Update file contents
     this.updateFileContents(this.srcPath, oldNameLower, newNameLower, oldNameCapital, newNameCapital);
   }
 
@@ -139,7 +127,6 @@ export class RenameResCommand {
     for (const entry of entries) {
       const oldPath = path.join(dir, entry.name);
 
-      // Generate new filename
       let newFileName = entry.name;
       if (entry.name.toLowerCase().includes(oldName)) {
         const index = entry.name.toLowerCase().indexOf(oldName);
@@ -150,7 +137,6 @@ export class RenameResCommand {
 
       const newPath = path.join(dir, newFileName);
 
-      // Rename file
       if (oldPath !== newPath) {
         try {
           fs.renameSync(oldPath, newPath);
@@ -166,7 +152,6 @@ export class RenameResCommand {
         }
       }
 
-      // Process directory recursively
       if (entry.isDirectory()) {
         this.renameFilesAndDirs(newPath, oldName, newName);
       }
@@ -191,7 +176,6 @@ export class RenameResCommand {
         try {
           let content = fs.readFileSync(fullPath, "utf8");
 
-          // Replace lowercase and capitalized name (정규식으로 한 번에)
           const regexLower = new RegExp(oldNameLower, "g");
           const regexCapital = new RegExp(oldNameCapital, "g");
           let updated = false;
@@ -201,7 +185,6 @@ export class RenameResCommand {
             updated = true;
           }
 
-          // Write changes if updated
           if (updated) {
             fs.writeFileSync(fullPath, content, "utf8");
             this.updatedFiles.push(path.relative(process.cwd(), fullPath));
