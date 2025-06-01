@@ -12,6 +12,7 @@ export class RenameResCommand {
   private srcPath: string;
   private found: boolean = false;
   private renamedFiles: string[] = [];
+  private updatedFiles: string[] = [];
 
   constructor() {
     this.srcPath = path.join(process.cwd(), "src");
@@ -35,7 +36,7 @@ export class RenameResCommand {
         console.error("This is not a NestJS project.");
         process.exit(1);
       }
-    } catch (error) {
+    } catch (error) { 
       console.error("Error reading package.json:", error);
       process.exit(1);
     }
@@ -71,14 +72,24 @@ export class RenameResCommand {
 
     // Execute renaming
     this.renameInProject(oldNameLower, oldNameCapital);
-    console.log("Renaming completed successfully.");
+
+    // 요약 출력
+    if (this.renamedFiles.length > 0) {
+      console.log(`\n[Renamed files/directories: ${this.renamedFiles.length}]`);
+      this.renamedFiles.forEach((f) => console.log(`  - ${f}`));
+    } else {
+      console.log("No files or directories were renamed.");
+    }
+    if (this.updatedFiles.length > 0) {
+      console.log(`\n[Updated file contents: ${this.updatedFiles.length}]`);
+      this.updatedFiles.forEach((f) => console.log(`  - ${f}`));
+    } else {
+      console.log("No file contents were updated.");
+    }
+    console.log("\nRenaming completed successfully.");
   }
 
-  private checkOldNameExists(
-    dir: string,
-    oldNameLower: string,
-    oldNameCapital: string,
-  ): void {
+  private checkOldNameExists(dir: string, oldNameLower: string, oldNameCapital: string): void {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -96,10 +107,7 @@ export class RenameResCommand {
         // Check file content
         try {
           const content = fs.readFileSync(fullPath, "utf8");
-          if (
-            content.includes(oldNameLower) ||
-            content.includes(oldNameCapital)
-          ) {
+          if (content.includes(oldNameLower) || content.includes(oldNameCapital)) {
             this.found = true;
             return;
           }
@@ -118,20 +126,10 @@ export class RenameResCommand {
     this.renameFilesAndDirs(this.srcPath, oldNameLower, newNameLower);
 
     // Update file contents
-    this.updateFileContents(
-      this.srcPath,
-      oldNameLower,
-      newNameLower,
-      oldNameCapital,
-      newNameCapital,
-    );
+    this.updateFileContents(this.srcPath, oldNameLower, newNameLower, oldNameCapital, newNameCapital);
   }
 
-  private renameFilesAndDirs(
-    dir: string,
-    oldName: string,
-    newName: string,
-  ): void {
+  private renameFilesAndDirs(dir: string, oldName: string, newName: string): void {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -152,10 +150,15 @@ export class RenameResCommand {
       if (oldPath !== newPath) {
         try {
           fs.renameSync(oldPath, newPath);
-          this.renamedFiles.push(path.relative(process.cwd(), oldPath));
-          console.log(`Renamed: ${oldPath} -> ${newPath}`);
+          this.renamedFiles.push(
+            path.relative(process.cwd(), oldPath) + " -> " + path.relative(process.cwd(), newPath)
+          );
         } catch (error) {
-          console.error(`Error renaming file: ${oldPath}`, error);
+          const msg =
+            typeof error === "object" && error && "message" in error
+              ? (error as any).message
+              : String(error);
+          console.error(`[Error] Failed to rename: ${oldPath} -> ${newPath}\n  Reason:`, msg);
         }
       }
 
@@ -171,7 +174,7 @@ export class RenameResCommand {
     oldNameLower: string,
     newNameLower: string,
     oldNameCapital: string,
-    newNameCapital: string,
+    newNameCapital: string
   ): void {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -179,13 +182,7 @@ export class RenameResCommand {
       const fullPath = path.join(dir, entry.name);
 
       if (entry.isDirectory()) {
-        this.updateFileContents(
-          fullPath,
-          oldNameLower,
-          newNameLower,
-          oldNameCapital,
-          newNameCapital,
-        );
+        this.updateFileContents(fullPath, oldNameLower, newNameLower, oldNameCapital, newNameCapital);
       } else if (entry.isFile() && entry.name.endsWith(".ts")) {
         try {
           let content = fs.readFileSync(fullPath, "utf8");
@@ -206,10 +203,14 @@ export class RenameResCommand {
           // Write changes if updated
           if (updated) {
             fs.writeFileSync(fullPath, content, "utf8");
-            console.log(`Updated file: ${fullPath}`);
+            this.updatedFiles.push(path.relative(process.cwd(), fullPath));
           }
         } catch (error) {
-          console.error(`Error updating file: ${fullPath}`, error);
+          const msg =
+            typeof error === "object" && error && "message" in error
+              ? (error as any).message
+              : String(error);
+          console.error(`[Error] Failed to update file: ${fullPath}\n  Reason:`, msg);
         }
       }
     }
