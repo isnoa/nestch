@@ -89,14 +89,14 @@ export class RenameResCommand {
     console.log("\nRenaming completed successfully.");
   }
 
-  private checkOldNameExists(
-    dir: string,
-    oldNameLower: string,
-    oldNameCapital: string,
-  ): void {
+  private checkOldNameExists(dir: string, oldNameLower: string, oldNameCapital: string): void {
+    if (this.found) return; // 이미 찾았으면 더 이상 탐색하지 않음
+
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
+      if (this.found) break; // 이미 찾았으면 중단
+
       const fullPath = path.join(dir, entry.name);
 
       if (entry.isDirectory()) {
@@ -105,18 +105,15 @@ export class RenameResCommand {
         // Check filename
         if (entry.name.toLowerCase().includes(oldNameLower)) {
           this.found = true;
-          return;
+          break;
         }
 
         // Check file content
         try {
           const content = fs.readFileSync(fullPath, "utf8");
-          if (
-            content.includes(oldNameLower) ||
-            content.includes(oldNameCapital)
-          ) {
+          if (content.includes(oldNameLower) || content.includes(oldNameCapital)) {
             this.found = true;
-            return;
+            break;
           }
         } catch (error) {
           console.error(`Error reading file: ${fullPath}`, error);
@@ -133,20 +130,10 @@ export class RenameResCommand {
     this.renameFilesAndDirs(this.srcPath, oldNameLower, newNameLower);
 
     // Update file contents
-    this.updateFileContents(
-      this.srcPath,
-      oldNameLower,
-      newNameLower,
-      oldNameCapital,
-      newNameCapital,
-    );
+    this.updateFileContents(this.srcPath, oldNameLower, newNameLower, oldNameCapital, newNameCapital);
   }
 
-  private renameFilesAndDirs(
-    dir: string,
-    oldName: string,
-    newName: string,
-  ): void {
+  private renameFilesAndDirs(dir: string, oldName: string, newName: string): void {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -168,19 +155,14 @@ export class RenameResCommand {
         try {
           fs.renameSync(oldPath, newPath);
           this.renamedFiles.push(
-            path.relative(process.cwd(), oldPath) +
-              " -> " +
-              path.relative(process.cwd(), newPath),
+            path.relative(process.cwd(), oldPath) + " -> " + path.relative(process.cwd(), newPath)
           );
         } catch (error) {
           const msg =
             typeof error === "object" && error && "message" in error
               ? (error as any).message
               : String(error);
-          console.error(
-            `[Error] Failed to rename: ${oldPath} -> ${newPath}\n  Reason:`,
-            msg,
-          );
+          console.error(`[Error] Failed to rename: ${oldPath} -> ${newPath}\n  Reason:`, msg);
         }
       }
 
@@ -196,7 +178,7 @@ export class RenameResCommand {
     oldNameLower: string,
     newNameLower: string,
     oldNameCapital: string,
-    newNameCapital: string,
+    newNameCapital: string
   ): void {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -204,27 +186,18 @@ export class RenameResCommand {
       const fullPath = path.join(dir, entry.name);
 
       if (entry.isDirectory()) {
-        this.updateFileContents(
-          fullPath,
-          oldNameLower,
-          newNameLower,
-          oldNameCapital,
-          newNameCapital,
-        );
+        this.updateFileContents(fullPath, oldNameLower, newNameLower, oldNameCapital, newNameCapital);
       } else if (entry.isFile() && entry.name.endsWith(".ts")) {
         try {
           let content = fs.readFileSync(fullPath, "utf8");
+
+          // Replace lowercase and capitalized name (정규식으로 한 번에)
+          const regexLower = new RegExp(oldNameLower, "g");
+          const regexCapital = new RegExp(oldNameCapital, "g");
           let updated = false;
 
-          // Replace lowercase name
-          if (content.includes(oldNameLower)) {
-            content = content.split(oldNameLower).join(newNameLower);
-            updated = true;
-          }
-
-          // Replace capitalized name
-          if (content.includes(oldNameCapital)) {
-            content = content.split(oldNameCapital).join(newNameCapital);
+          if (regexLower.test(content) || regexCapital.test(content)) {
+            content = content.replace(regexLower, newNameLower).replace(regexCapital, newNameCapital);
             updated = true;
           }
 
@@ -238,10 +211,7 @@ export class RenameResCommand {
             typeof error === "object" && error && "message" in error
               ? (error as any).message
               : String(error);
-          console.error(
-            `[Error] Failed to update file: ${fullPath}\n  Reason:`,
-            msg,
-          );
+          console.error(`[Error] Failed to update file: ${fullPath}\n  Reason:`, msg);
         }
       }
     }
