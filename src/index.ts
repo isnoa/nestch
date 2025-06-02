@@ -4,7 +4,9 @@ import { RenameResCommand } from "./commands/rename-resource";
 import * as fs from "fs";
 import * as path from "path";
 
-const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json"), "utf8"));
+const packageJson = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "../package.json"), "utf8"),
+);
 
 const program = new Command();
 
@@ -24,7 +26,7 @@ program
 Examples:
   $ nestch rename users members
   $ nestch rename users members --type controller
-  $ nestch rename users members --type service`
+  $ nestch rename users members --type service`,
   )
   .action(async (oldName, newName, options) => {
     const renameResCommand = new RenameResCommand();
@@ -40,13 +42,15 @@ program
     `
 Examples:
   $ nestch change users members
-  $ nestch change users members --type controller`
+  $ nestch change users members --type controller`,
   )
   .action(async (oldName, newName, options) => {
     const renameResCommand = new RenameResCommand();
     await renameResCommand.execute(oldName, newName);
   });
 
-program.command("help [command]").description("Output usage information for a command");
+program
+  .command("help [command]")
+  .description("Output usage information for a command");
 
 program.parse(process.argv);
