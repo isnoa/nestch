@@ -6,6 +6,35 @@ function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+function pluralize(word: string): string {
+  if (/[^aeiou]y$/i.test(word)) {
+    return word.replace(/y$/i, "ies");
+  } else if (/(?:f|fe)$/i.test(word)) {
+    return word.replace(/(?:f|fe)$/i, "ves");
+  } else if (/(s|x|z|ch|sh)$/i.test(word)) {
+    return word + "es";
+  } else {
+    return word + "s";
+  }
+}
+
+function singularize(word: string): string {
+  if (/ies$/i.test(word)) {
+    return word.replace(/ies$/i, "y");
+  } else if (/ves$/i.test(word)) {
+    return word.replace(/ves$/i, (m) => {
+      if (/[^aeiou]ves$/i.test(word)) return "f";
+      return "fe";
+    });
+  } else if (/(s|x|z|ch|sh)es$/i.test(word)) {
+    return word.replace(/es$/i, "");
+  } else if (/s$/i.test(word) && !/ss$/i.test(word)) {
+    return word.replace(/s$/i, "");
+  } else {
+    return word;
+  }
+}
+
 export class RenameResCommand {
   private oldName: string = "";
   private newName: string = "";
@@ -22,9 +51,11 @@ export class RenameResCommand {
     this.oldName = oldName;
     this.newName = newName;
 
-    // 복수/단수 처리
-    const oldNameSingular = oldName.endsWith("s") ? oldName.slice(0, -1) : oldName;
-    const newNameSingular = newName.endsWith("s") ? newName.slice(0, -1) : newName;
+    // 복수/단수 처리 (규칙적 변환)
+    const oldNameSingular = singularize(oldName);
+    const oldNamePlural = pluralize(oldNameSingular);
+    const newNameSingular = singularize(newName);
+    const newNamePlural = pluralize(newNameSingular);
 
     const packageJsonPath = path.join(process.cwd(), "package.json");
     try {
@@ -53,10 +84,14 @@ export class RenameResCommand {
       process.exit(1);
     }
 
-    const oldNameLower = this.oldName.toLowerCase();
-    const oldNameCapital = capitalizeFirstLetter(this.oldName);
+    const oldNameLower = oldNamePlural.toLowerCase();
+    const oldNameCapital = capitalizeFirstLetter(oldNamePlural);
     const oldNameSingularLower = oldNameSingular.toLowerCase();
     const oldNameSingularCapital = capitalizeFirstLetter(oldNameSingular);
+    const newNameLower = newNamePlural.toLowerCase();
+    const newNameCapital = capitalizeFirstLetter(newNamePlural);
+    const newNameSingularLower = newNameSingular.toLowerCase();
+    const newNameSingularCapital = capitalizeFirstLetter(newNameSingular);
     await this.checkOldNameExists(this.srcPath, oldNameLower, oldNameCapital);
 
     if (!this.found) {
@@ -81,10 +116,10 @@ export class RenameResCommand {
       oldNameCapital,
       oldNameSingularLower,
       oldNameSingularCapital,
-      newName.toLowerCase(),
-      capitalizeFirstLetter(newName),
-      newNameSingular.toLowerCase(),
-      capitalizeFirstLetter(newNameSingular)
+      newNameLower,
+      newNameCapital,
+      newNameSingularLower,
+      newNameSingularCapital,
     );
 
     if (this.renamedFiles.length > 0) {
@@ -105,7 +140,7 @@ export class RenameResCommand {
   private async checkOldNameExists(
     dir: string,
     oldNameLower: string,
-    oldNameCapital: string
+    oldNameCapital: string,
   ): Promise<void> {
     if (this.found) return;
 
@@ -130,7 +165,10 @@ export class RenameResCommand {
         }
         try {
           const content = await fs.readFile(fullPath, "utf8");
-          if (content.includes(oldNameLower) || content.includes(oldNameCapital)) {
+          if (
+            content.includes(oldNameLower) ||
+            content.includes(oldNameCapital)
+          ) {
             this.found = true;
             break;
           }
@@ -149,14 +187,14 @@ export class RenameResCommand {
     newNameLower: string,
     newNameCapital: string,
     newNameSingularLower: string,
-    newNameSingularCapital: string
+    newNameSingularCapital: string,
   ): Promise<void> {
     await this.renameFilesAndDirs(
       this.srcPath,
       oldNameLower,
       newNameLower,
       oldNameSingularLower,
-      newNameSingularLower
+      newNameSingularLower,
     );
     await this.updateFileContents(
       this.srcPath,
@@ -167,7 +205,7 @@ export class RenameResCommand {
       oldNameSingularLower,
       newNameSingularLower,
       oldNameSingularCapital,
-      newNameSingularCapital
+      newNameSingularCapital,
     );
   }
 
@@ -176,7 +214,7 @@ export class RenameResCommand {
     oldName: string,
     newName: string,
     oldNameSingular: string,
-    newNameSingular: string
+    newNameSingular: string,
   ): Promise<void> {
     let entries: any[] = [];
     try {
@@ -217,7 +255,9 @@ export class RenameResCommand {
           try {
             await fs.rename(oldPath, newPath);
             this.renamedFiles.push(
-              path.relative(process.cwd(), oldPath) + " -> " + path.relative(process.cwd(), newPath)
+              path.relative(process.cwd(), oldPath) +
+                " -> " +
+                path.relative(process.cwd(), newPath),
             );
             nextDir = newPath;
           } catch (error) {
@@ -225,24 +265,38 @@ export class RenameResCommand {
               typeof error === "object" && error && "message" in error
                 ? (error as any).message
                 : String(error);
-            console.error(`[Error] Failed to rename: ${oldPath} -> ${newPath}\n  Reason:`, msg);
+            console.error(
+              `[Error] Failed to rename: ${oldPath} -> ${newPath}\n  Reason:`,
+              msg,
+            );
             nextDir = oldPath;
           }
         }
-        await this.renameFilesAndDirs(nextDir, oldName, newName, oldNameSingular, newNameSingular);
+        await this.renameFilesAndDirs(
+          nextDir,
+          oldName,
+          newName,
+          oldNameSingular,
+          newNameSingular,
+        );
       } else {
         if (oldPath !== newPath) {
           try {
             await fs.rename(oldPath, newPath);
             this.renamedFiles.push(
-              path.relative(process.cwd(), oldPath) + " -> " + path.relative(process.cwd(), newPath)
+              path.relative(process.cwd(), oldPath) +
+                " -> " +
+                path.relative(process.cwd(), newPath),
             );
           } catch (error) {
             const msg =
               typeof error === "object" && error && "message" in error
                 ? (error as any).message
                 : String(error);
-            console.error(`[Error] Failed to rename: ${oldPath} -> ${newPath}\n  Reason:`, msg);
+            console.error(
+              `[Error] Failed to rename: ${oldPath} -> ${newPath}\n  Reason:`,
+              msg,
+            );
           }
         }
       }
@@ -258,7 +312,7 @@ export class RenameResCommand {
     oldNameSingularLower: string,
     newNameSingularLower: string,
     oldNameSingularCapital: string,
-    newNameSingularCapital: string
+    newNameSingularCapital: string,
   ): Promise<void> {
     let entries: any[] = [];
     try {
@@ -280,7 +334,7 @@ export class RenameResCommand {
           oldNameSingularLower,
           newNameSingularLower,
           oldNameSingularCapital,
-          newNameSingularCapital
+          newNameSingularCapital,
         );
       } else if (entry.isFile() && entry.name.endsWith(".ts")) {
         try {
@@ -310,7 +364,10 @@ export class RenameResCommand {
             typeof error === "object" && error && "message" in error
               ? (error as any).message
               : String(error);
-          console.error(`[Error] Failed to update file: ${fullPath}\n  Reason:`, msg);
+          console.error(
+            `[Error] Failed to update file: ${fullPath}\n  Reason:`,
+            msg,
+          );
         }
       }
     }
