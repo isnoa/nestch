@@ -10,8 +10,8 @@
     "format": "prettier --write 'src/**/*.{ts,js,json}'",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "all": "npm run build && npm publish",
-    "test-local": "npm run build && npm link"
+    "cli": "npm install && npm run build && npm publish",
+    "local": "npm install && npm run build && npm link"
   },
   "dependencies": {
     "commander": "^14.0.0",
