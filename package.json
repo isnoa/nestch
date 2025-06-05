@@ -53,7 +53,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/isnoa/nestch.git"
+    "url": "git+https://github.com/isnoa/nestch.git"
   },
   "contributors": [
     {
@@ -68,9 +68,10 @@
     "nestch": "bin/cli.js"
   },
   "files": [
-    "dist",
+    "bin",
+    "lib",
     "package.json",
-    "readme.md",
+    "README.md",
     "LICENSE"
   ],
   "engines": {
