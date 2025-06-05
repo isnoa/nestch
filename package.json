@@ -3,15 +3,15 @@
   "version": "1.2.1",
   "private": false,
   "description": "A CLI tool for renaming NestJS resource names easily.",
-  "main": "dist/index.js",
+  "main": "bin/cli.js",
   "scripts": {
     "preinstall": "npm run format",
-    "build": "tsc",
+    "build": "tsc && node scripts/create-bin.js && node scripts/prepare-package.js && copy readme.md dist && copy LICENSE dist",
     "format": "prettier --write 'src/**/*.{ts,js,json}'",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "cli": "npm install && npm run build && npm publish",
-    "local": "npm install && npm run build && npm link"
+    "start": "node dist/bin/cli.js",
+    "dev": "ts-node dist/bin/cli.ts",
+    "cli": "npm install && npm run build && cd dist && npm publish",
+    "local": "npm install && npm run build && cd dist && npm link"
   },
   "dependencies": {
     "commander": "^14.0.0",
@@ -65,8 +65,14 @@
   "author": "isnoa",
   "license": "MIT",
   "bin": {
-    "nestch": "dist/index.js"
+    "nestch": "bin/cli.js"
   },
+  "files": [
+    "dist",
+    "package.json",
+    "readme.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=20.0.0"
   }

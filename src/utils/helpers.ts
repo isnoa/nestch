@@ -7,7 +7,7 @@ export function toKebabCase(string: string): string {
     .replace(/\s+/g, "-")
     .replace(/[A-Z]/g, (match) => "-" + match.toLowerCase())
     .replace(/--+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/^(-|$)/g, "");
 }
 
 export function isValidResourceName(name: string): boolean {
