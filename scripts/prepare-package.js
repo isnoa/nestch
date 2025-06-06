@@ -21,6 +21,7 @@ function main() {
     }
   }
 
+  // Remove dist from main, bin, and files
   const removeDist = (value) => {
     if (typeof value === "string") {
       return value.replace(/\\?dist[\\/]/g, "");
@@ -28,7 +29,6 @@ function main() {
     return value;
   };
 
-  // main, bin, files 등에서 /dist 제거
   if (sourceObj.main) {
     sourceObj.main = removeDist(sourceObj.main);
   }
@@ -41,13 +41,11 @@ function main() {
     sourceObj.files = sourceObj.files.map(removeDist);
   }
 
-  // Ensure dist directory exists
   const distDir = path.join(__dirname, "../dist");
   if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });
   }
 
-  // Write modified package.json to dist
   fs.writeFileSync(destPath, Buffer.from(JSON.stringify(sourceObj, null, 2), "utf-8"));
   console.log(`Created ${destPath}`);
 }
