@@ -47,7 +47,7 @@ function main() {
   }
 
   fs.writeFileSync(destPath, Buffer.from(JSON.stringify(sourceObj, null, 2), "utf-8"));
-  console.log(`Created ${destPath}`);
+  console.log(`Successfully created ${path.relative(path.join(__dirname, ".."), destPath)}`);
 }
 
 main();
