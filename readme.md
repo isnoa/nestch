@@ -16,6 +16,12 @@ Nestch is a command-line interface (CLI) tool designed to simplify the process o
 | :---------------------------------------------------------------------------------------------------------------- |
 | This package supports full functionality starting from version ^1.2.0. Versions below this may not work properly. |
 
+## Recommendation to Use the Latest Version
+
+| :bulb: RECOMMENDATION                                                                                                                               |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The Nestch CLI tool is continuously being optimized and made more lightweight. All the latest features and performance improvements are included in the latest version, therefore, we strongly recommend always keeping the latest version. |
+
 ## Installation
 
 ```bash
