@@ -3,7 +3,7 @@
   "version": "1.3.1",
   "private": false,
   "description": "A CLI tool for renaming NestJS resource names easily.",
-  "main": "bin/cli.js",
+  "main": "dist/bin/cli.js",
   "scripts": {
     "preinstall": "npm run format",
     "build": "tsc && node scripts/create-bin.js && node scripts/prepare-package.js && copy readme.md dist && copy LICENSE dist",
@@ -65,11 +65,11 @@
   "author": "isnoa",
   "license": "MIT",
   "bin": {
-    "nestch": "bin/cli.js"
+    "nestch": "dist/bin/cli.js"
   },
   "files": [
-    "bin",
-    "lib",
+    "dist/bin",
+    "dist/lib",
     "package.json",
     "README.md",
     "LICENSE"

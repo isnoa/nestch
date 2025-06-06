@@ -21,9 +21,24 @@ function main() {
     }
   }
 
-  // Adjust main path if necessary
-  if (sourceObj.main && sourceObj.main.startsWith("dist/")) {
-    sourceObj.main = sourceObj.main.slice(5);
+  const removeDist = (value) => {
+    if (typeof value === "string") {
+      return value.replace(/\\?dist[\\/]/g, "");
+    }
+    return value;
+  };
+
+  // main, bin, files 등에서 /dist 제거
+  if (sourceObj.main) {
+    sourceObj.main = removeDist(sourceObj.main);
+  }
+  if (sourceObj.bin) {
+    Object.keys(sourceObj.bin).forEach((key) => {
+      sourceObj.bin[key] = removeDist(sourceObj.bin[key]);
+    });
+  }
+  if (Array.isArray(sourceObj.files)) {
+    sourceObj.files = sourceObj.files.map(removeDist);
   }
 
   // Ensure dist directory exists
